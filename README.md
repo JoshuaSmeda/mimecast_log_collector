@@ -8,5 +8,6 @@ Collects SIEM logs from Mimecast API
 2. Replace authenciation details in the script with your Mimecast API details. <br>
 3. Run the script. <br>
 
+
 You can create a System V init script to run this script as a "service" and build health checking around this using Monit for example.
 
