@@ -1,7 +1,7 @@
 # Mimecast-log-collector
 Collects Mimecast logs from Mimecast API (Can be pushed into a SIEM).
 
-# Tested with Python 2 #
+_Tested with Python 2_
 
 <h2>How do I use this?</h2>
 1. Place the script in a directory. `git clone`<br>
