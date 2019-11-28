@@ -6,7 +6,8 @@ import hashlib
 import hmac
 import time
 import configuration
-from mimecast.logger import log, syslogger, get_hdr_date, write_file, read_file
+
+from mimecast.logger import log, get_hdr_date
 
 
 class Mimecast():
@@ -20,7 +21,6 @@ class Mimecast():
         digest = hmac.new(secret_key, data_to_sign, digestmod=hashlib.sha1).digest()  # still bytes
         digest_b64 = base64.b64encode(digest)  # bytes again
         return digest_b64.decode(encoding)  # that's now str
-
 
     def get_base_url(self, email_address):
         # Create post body for request

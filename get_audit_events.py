@@ -1,67 +1,61 @@
-import base64
-import hashlib
-import hmac
-import uuid
-import datetime
-import requests
-
 import configuration
+from mimecast.connection import Mimecast
+import os
+import time
+import requests
+from mimecast.logger import log, syslogger, write_file, read_file
 
-# Setup required variables
-base_url = "https://za-api.mimecast.com"
-uri = "/api/audit/get-audit-events"
-url = base_url + uri
-access_key = "mYtOL3XZCOwG96BOiFTZRobmn0BUukXst5ZkLlSng4sBj3gSI7eO7AKdNiCk9xlCulNaFB4EEUVl76rXcsIemIClZcevBsB5iGaidDfpEPoWjVJuvNDLqAqGeB0OfU9Mm__xRFP6Q6FEcQuSNctWsQ"
-secret_key = "qwU2U8W1tFViZlBdnDAiUinFJVHh/JW69NcugapHeRMccVvcyF+uzIgMMeXw7Q2gToIhs6mPaj9PfyMLxl5Vlg=="
-app_id = "34107bdc-6f7f-4c1e-a313-5e3b224cd4e1"
-app_key = "b58a89da-b5e3-4813-bc36-45f74a66e216"
- 
-# Generate request header values
-request_id = str(uuid.uuid4())
-request_date = datetime.datetime.utcnow().strftime("%a, %d %b %Y %H:%M:%S") + " UTC"
- 
-# Create the HMAC SHA1 of the Base64 decoded secret key for the Authorization header
-#hmac_sha1 = hmac.new(secret_key.decode("base64"), ':'.join([hdr_date, request_id, uri, app_key]), digestmod=hashlib.sha1).digest()
- 
-# Use the HMAC SHA1 value to sign the hdrDate + ":" requestId + ":" + URI + ":" + appkey
-#sig = base64.encodestring(hmac_sha1).rstrip()
+# Declare the type of event we want to ingest
+event_type = '/api/audit/get-audit-events'
+connection = Mimecast(event_type)
 
 
-def create_signature(data_to_sign: str, secret_key: str, encoding='utf-8'):
-    secret_key = secret_key.encode(encoding)
-    data_to_sign = data_to_sign.encode(encoding)
-    secret_key = base64.b64decode(secret_key)
-    digest = hmac.new(secret_key, data_to_sign, digestmod=hashlib.sha1).digest()  # still bytes
-    digest_b64 = base64.b64encode(digest)  # bytes again
-    return digest_b64.decode(encoding)  # that's now str
+def get_audit_siem_logs(base_url, access_key, secret_key):
+    post_body = dict()
+    post_body['data'] = [{'startDateTime': '2018-12-03T10:15:30+0000','endDateTime': '2019-12-03T10:15:30+0000'}]
+    print(post_body)
+    resp = connection.post_request(base_url, event_type, post_body, access_key, secret_key)
+    print(resp)
+
+    # Process response
+    if resp != 'error':
+        resp_body = resp[0]
+        resp_headers = resp[1]
+        content_type = resp_headers['Content-Type']
+
+        # End if response is JSON as there is no log file to download
+        if content_type == 'application/json':
+            log.info('No more SIEM logs available - Resting for 60 seconds')
+            time.sleep(60)
+            return True
+    
+        else:
+            # Handle errors
+            log.error('Unexpected response')
+            for header in resp_headers:
+                log.error(header)
+            return False
+
+    else:
+        print("ERROR!")
 
 
-signature = 'MC ' + access_key + ':' + create_signature(':'.join([request_date, request_id, uri, app_key]), secret_key)
-print(signature)
-headers = {'Authorization': signature, 'x-mc-app-id': app_id, 'x-mc-req-id': request_id, 'x-mc-date': request_date }
+def get_audit_logs(): 
+    try:
+        base_url = connection.get_base_url(configuration.authenication_details['EMAIL_ADDRESS'])
+        print(base_url)
+    except Exception:
+        log.error('Error discovering base url for %s. Please double check configuration.py' % (configuration.authenication_details['EMAIL_ADDRESS']))
+        quit()
 
-# Create request headers
-"""
-headers = {
-    'Authorization': 'MC ' + access_key + ':' + sig,
-    'x-mc-app-id': app_id,
-    'x-mc-date': hdr_date,
-    'x-mc-req-id': request_id,
-    'Content-Type': 'application/json'
-}
-"""
+    # Request log data in a loop until there are no more logs to collect
+    try:
+        log.info('Getting Audit log data')
+        while get_audit_siem_logs(base_url=base_url, access_key=configuration.authenication_details['ACCESS_KEY'], secret_key=configuration.authenication_details['SECRET_KEY']) is True:
+            print("Getting additional SIEM logs")
+    except Exception as e:
+        log.error('Unexpected error getting MTA logs ' + (str(e)))
+    quit()
 
-payload = {
-        'data': [
-            {
-                'startDateTime': '2018-12-03T10:15:30+0000',
-                'endDateTime': '2019-12-03T10:15:30+0000',
-            }
-        ]
-    }
-
-
-r = requests.post(url=url, headers=headers, data=str(payload))
-
-
-print(r.text)
+# Start ingesting logs!
+get_audit_logs()

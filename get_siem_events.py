@@ -2,7 +2,8 @@ import configuration
 from mimecast.connection import Mimecast
 import os
 import time
-from mimecast.logger import log, syslogger, get_hdr_date, write_file, read_file
+from mimecast.logger import log, syslogger, write_file, read_file
+
 
 # Declare the type of event we want to ingest
 event_type = '/api/audit/get-siem-logs'
@@ -22,12 +23,13 @@ def get_mta_siem_logs(checkpoint_dir, base_url, access_key, secret_key):
 
     # Send request to API
     resp = connection.post_request(base_url, event_type, post_body, access_key, secret_key)
-    print(resp)
+
     # Process response
     if resp != 'error':
         resp_body = resp[0]
         resp_headers = resp[1]
         content_type = resp_headers['Content-Type']
+
         # End if response is JSON as there is no log file to download
         if content_type == 'application/json':
             log.info('No more SIEM logs available - Resting for 60 seconds')
@@ -56,9 +58,9 @@ def get_mta_siem_logs(checkpoint_dir, base_url, access_key, secret_key):
 
             # return true to continue loop
             return True
+            
         else:
             # Handle errors
-            print("No working!")
             log.error('Unexpected response')
             for header in resp_headers:
                 log.error(header)
@@ -81,6 +83,8 @@ def get_siem_logs():
     except Exception as e:
         log.error('Unexpected error getting MTA logs ' + (str(e)))
     quit()
+
+# Start ingesting logs!
 
 
 get_siem_logs()
