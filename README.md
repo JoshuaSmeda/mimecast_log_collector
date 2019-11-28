@@ -1,14 +1,12 @@
-# Migrated to Python  3
-
-* Mimecast 
-
+# Mimecast 
+* Migrated to Python  3
 
 Supports:
 
-get_siem_logs
-get_ttp_urls
-get_auth_logs
+get_siem_logs <br>
+get_ttp_urls <br>
+get_auth_logs <br>
 
 
 
-Edit configuration.py to change client details
+Edit `configuration.py` to change client details

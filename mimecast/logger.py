@@ -33,7 +33,6 @@ def read_file(file_name):
     try:
         with open(file_name, 'r') as f:
             data = f.read()
-
         return data
     except Exception as e:
         log.error('Error reading file ' + file_name + '. Cannot continue. Exception: ' + str(e))
@@ -42,9 +41,10 @@ def read_file(file_name):
 
 def write_file(file_name, data_to_write):
     try:
-        with open(file_name, 'w') as f:
+        with open(file_name, 'w', encoding="utf-8") as f:
+      #      print(type(data_to_write))
             f.write(data_to_write)
-#            f.write(data_to_write.encode('utf-8'))
+      #      f.write(str(data_to_write.encode('utf-8')))
     except Exception as e:
         log.error('Error writing file ' + file_name + '. Cannot continue. Exception: ' + str(e))
         quit()

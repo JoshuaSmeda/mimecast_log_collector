@@ -114,13 +114,12 @@ def get_mta_siem_logs(checkpoint_dir, base_url, access_key, secret_key):
 
     # Send request to API
     resp = post_request(base_url, configuration.authenication_details['URI'], post_body, access_key, secret_key)
-
+   # print(resp)
     # Process response
     if resp != 'error':
         resp_body = resp[0]
         resp_headers = resp[1]
         content_type = resp_headers['Content-Type']
-
         # End if response is JSON as there is no log file to download
         if content_type == 'application/json':
             log.info('No more SIEM logs available - Resting for 60 seconds')
@@ -151,6 +150,7 @@ def get_mta_siem_logs(checkpoint_dir, base_url, access_key, secret_key):
             return True
         else:
             # Handle errors
+            print("No working!")
             log.error('Unexpected response')
             for header in resp_headers:
                 log.error(header)
@@ -168,7 +168,7 @@ def get_siem_logs():
     try:
         log.info('Getting MTA log data')
         while get_mta_siem_logs(checkpoint_dir=configuration.logging_details['CHK_POINT_DIR'], base_url=base_url, access_key=configuration.authenication_details['ACCESS_KEY'], secret_key=configuration.authenication_details['SECRET_KEY']) is True:
-            log.info('Requesting more SIEM log files')
+            print("Getting siem logs")
     except Exception as e:
         log.error('Unexpected error getting MTA logs ' + (str(e)))
     quit()
