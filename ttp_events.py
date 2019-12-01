@@ -6,16 +6,14 @@ import requests
 from mimecast.logger import log, syslogger, write_file, read_file
 
 # Declare the type of event we want to ingest
-event_type = '/api/audit/get-audit-events'
+event_type = '/api/ttp/url/get-logs'
 connection = Mimecast(event_type)
 
 
-def get_audit_siem_logs(base_url, access_key, secret_key):
+def Get_TTPURL_events(base_url, access_key, secret_key):
     post_body = dict()
-    post_body['data'] = [{'startDateTime': '2018-12-03T10:15:30+0000','endDateTime': '2019-12-03T10:15:30+0000'}]
-    print(post_body)
+   # post_body['data'] = [{'startDateTime': '2018-12-03T10:15:30+0000','endDateTime': '2019-12-03T10:15:30+0000'}]
     resp = connection.post_request(base_url, event_type, post_body, access_key, secret_key)
-    print(resp)
 
     # Process response
     if resp != 'error':
@@ -25,7 +23,7 @@ def get_audit_siem_logs(base_url, access_key, secret_key):
 
         # End if response is JSON as there is no log file to download
         if content_type == 'application/json':
-            log.info('No more SIEM logs available - Resting for 60 seconds')
+            log.info('No more TTP URL logs available - Resting for 60 seconds')
             time.sleep(60)
             return True
     
@@ -40,7 +38,7 @@ def get_audit_siem_logs(base_url, access_key, secret_key):
         print("ERROR!")
 
 
-def get_audit_logs(): 
+def get_ttp_logss(): 
     try:
         base_url = connection.get_base_url(configuration.authenication_details['EMAIL_ADDRESS'])
         print(base_url)
@@ -50,12 +48,11 @@ def get_audit_logs():
 
     # Request log data in a loop until there are no more logs to collect
     try:
-        log.info('Getting Audit log data')
-        while get_audit_siem_logs(base_url=base_url, access_key=configuration.authenication_details['ACCESS_KEY'], secret_key=configuration.authenication_details['SECRET_KEY']) is True:
-            print("Getting additional SIEM logs")
+        log.info('Getting TTP log data')
+        while Get_TTPURL_events(base_url=base_url, access_key=configuration.authenication_details['ACCESS_KEY'], secret_key=configuration.authenication_details['SECRET_KEY']) is True:
+            print("Getting additional TTP logs")
     except Exception as e:
-        log.error('Unexpected error getting MTA logs ' + (str(e)))
+        log.error('Unexpected error getting TTP logs ' + (str(e)))
     quit()
 
-# Start ingesting logs!
-get_audit_logs()
+get_ttp_logs()

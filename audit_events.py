@@ -1,53 +1,59 @@
-	
-import base64
-import hashlib
-import hmac
-import uuid
-import datetime
+import configuration
+from mimecast.connection import Mimecast
+import os
+import time
 import requests
- 
-# Setup required variables
-base_url = "https://xx-api.mimecast.com"
-uri = "/api/audit/get-audit-events"
-url = base_url + uri
-access_key = "YOUR ACCESS KEY"
-secret_key = "YOUR SECRET KEY"
-app_id = "YOUR APPLICATION ID"
-app_key = "YOUR APPLICATION KEY"
- 
-# Generate request header values
-request_id = str(uuid.uuid4())
-hdr_date = datetime.datetime.utcnow().strftime("%a, %d %b %Y %H:%M:%S") + " UTC"
- 
-# Create the HMAC SHA1 of the Base64 decoded secret key for the Authorization header
-hmac_sha1 = hmac.new(secret_key.decode("base64"), ':'.join([hdr_date, request_id, uri, app_key]),
-                  digestmod=hashlib.sha1).digest()
- 
-# Use the HMAC SHA1 value to sign the hdrDate + ":" requestId + ":" + URI + ":" + appkey
-sig = base64.encodestring(hmac_sha1).rstrip()
- 
-# Create request headers
-headers = {
-    'Authorization': 'MC ' + access_key + ':' + sig,
-    'x-mc-app-id': app_id,
-    'x-mc-date': hdr_date,
-    'x-mc-req-id': request_id,
-    'Content-Type': 'application/json'
-}
- 
-payload = {
-        'data': [
-            {
-                'startDateTime': 'Date String',
-                'endDateTime': 'Date String',
-                'query': 'String',
-                'categories': [
-                    'String'
-                ]
-            }
-        ]
-    }
- 
-r = requests.post(url=url, headers=headers, data=str(payload))
- 
-print r.text
+from mimecast.logger import log, syslogger, write_file, read_file
+
+# Declare the type of event we want to ingest
+event_type = '/api/audit/get-audit-events'
+connection = Mimecast(event_type)
+
+
+def get_audit_siem_logs(base_url, access_key, secret_key):
+    post_body = dict()
+    post_body['data'] = [{'startDateTime': '2018-12-03T10:15:30+0000','endDateTime': '2019-12-03T10:15:30+0000'}]
+    print(post_body)
+    resp = connection.post_request(base_url, event_type, post_body, access_key, secret_key)
+    print(resp)
+
+    # Process response
+    if resp != 'error':
+        resp_body = resp[0]
+        resp_headers = resp[1]
+        content_type = resp_headers['Content-Type']
+
+        # End if response is JSON as there is no log file to download
+        if content_type == 'application/json':
+            log.info('No more Audit logs available - Resting for 60 seconds')
+            time.sleep(60)
+            return True
+    
+        else:
+            # Handle errors
+            log.error('Unexpected response')
+            for header in resp_headers:
+                log.error(header)
+            return False
+
+    else:
+        print("ERROR!")
+
+
+def get_audit_logs(): 
+    try:
+        base_url = connection.get_base_url(configuration.authenication_details['EMAIL_ADDRESS'])
+        print(base_url)
+    except Exception:
+        log.error('Error discovering base url for %s. Please double check configuration.py' % (configuration.authenication_details['EMAIL_ADDRESS']))
+        quit()
+
+    # Request log data in a loop until there are no more logs to collect
+    try:
+        log.info('Getting Audit log data')
+        while get_audit_siem_logs(base_url=base_url, access_key=configuration.authenication_details['ACCESS_KEY'], secret_key=configuration.authenication_details['SECRET_KEY']) is True:
+            print("Getting additional Audit logs")
+        log.error('Unexpected error getting Audit logs ' + (str(e)))
+    quit()
+
+get_audit_logs()

@@ -1,3 +1,10 @@
+source_details = {
+    "siem_events" : True,
+    "ttp_events" : False,
+    "audit_events" : False
+}
+
+
 authenication_details = {
     'APP_ID': "34107bdc-6f7f-4c1e-a313-5e3b224cd4e1",
     'APP_KEY': "b58a89da-b5e3-4813-bc36-45f74a66e216",

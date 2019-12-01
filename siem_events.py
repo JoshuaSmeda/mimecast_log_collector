@@ -84,7 +84,4 @@ def get_siem_logs():
         log.error('Unexpected error getting MTA logs ' + (str(e)))
     quit()
 
-# Start ingesting logs!
-
-
 get_siem_logs()
