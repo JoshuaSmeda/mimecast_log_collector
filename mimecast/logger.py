@@ -4,6 +4,7 @@ import datetime
 import configuration
 import os
 
+#print(dir(datetime))
 
 # Set up logging (in this case to terminal)
 log = logging.getLogger(__name__)
@@ -27,6 +28,19 @@ def get_hdr_date():
     date = datetime.datetime.utcnow()
     dt = date.strftime("%a, %d %b %Y %H:%M:%S")
     return dt + " UTC"
+
+
+def get_current_date():
+  date = datetime.datetime.now()
+  # 2019-12-03T10:15:30+0000
+  date = date.strftime("%Y-%m-%dT%H:%M:%S+0200")
+  return date
+
+
+def get_old_date():
+  date = datetime.datetime.now() - datetime.timedelta(days=14)
+  date = date.strftime("%Y-%m-%dT%H:%M:%S+0200")
+  return date
 
 
 def read_file(file_name):

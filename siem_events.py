@@ -57,7 +57,7 @@ def get_mta_siem_logs(checkpoint_dir, base_url, access_key, secret_key):
 
             # return true to continue loop
             return True
-            
+
         else:
             # Handle errors
             log.error('Unexpected response')
@@ -66,7 +66,7 @@ def get_mta_siem_logs(checkpoint_dir, base_url, access_key, secret_key):
             return False
 
 
-def get_siem_logs(): 
+def get_siem_logs():
     try:
         base_url = connection.get_base_url(configuration.authenication_details['EMAIL_ADDRESS'])
         print(base_url)

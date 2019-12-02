@@ -1,19 +1,19 @@
 import configuration
-from mimecast.connection import Mimecast
 import os
 import time
 import requests
 import json
-from mimecast.logger import log, syslogger, write_file, read_file, append_file
+
+from mimecast.connection import Mimecast
+from mimecast.logger import log, syslogger, write_file, read_file, append_file, get_hdr_date, get_current_date, get_old_date
 
 # Declare the type of event we want to ingest
 event_type = '/api/audit/get-audit-events'
 connection = Mimecast(event_type)
 
-
 def get_audit_events(base_url, access_key, secret_key):
     post_body = dict()
-    post_body['data'] = [{'startDateTime': '2018-12-03T10:15:30+0000','endDateTime': '2019-12-03T10:15:30+0000'}]
+    post_body['data'] = [{ 'startDateTime': get_old_date(), 'endDateTime': get_current_date() }]
     resp = connection.post_request(base_url, event_type, post_body, access_key, secret_key)
 
     # Process response
@@ -32,11 +32,10 @@ def get_audit_events(base_url, access_key, secret_key):
         elif 'application/json' in content_type:
             file_name = 'audit_events' # Storing everything into one file
             rjson = json.loads(resp_body)
-         #   print(json.dumps(rjson, indent=2))
             resp_body = rjson['data'] # Get Audit urls
             # Forward each event individually
             for row in resp_body:
-                resp_body = json.dumps(row, indent=2)
+                row = str(row).replace("'", '"') # Convert audit event to valid JSON
 
                 # Save file to log file path
                 append_file(os.path.join(configuration.logging_details['LOG_FILE_PATH'], file_name), str(row))
@@ -52,10 +51,10 @@ def get_audit_events(base_url, access_key, secret_key):
 
                 except Exception as e:
                     log.error('Unexpected error writing to syslog. Exception: ' + str(e))
-                
+
             # Return True to continue loop
             return True
-                
+
         else:
             # Handle errors
             log.error('Unexpected response')
@@ -63,7 +62,7 @@ def get_audit_events(base_url, access_key, secret_key):
                 log.error(header)
             return False
 
-def get_audit_logs(): 
+def get_audit_logs():
     try:
         base_url = connection.get_base_url(configuration.authenication_details['EMAIL_ADDRESS'])
         print(base_url)

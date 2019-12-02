@@ -36,9 +36,8 @@ def Get_TTPURL_events(base_url, access_key, secret_key):
 
             # Forward each event individually
             for row in resp_body:
-                resp_body = json.dumps(row)
-            #   resp_body = ''.join(map(str, resp_body)) # Convert list to string
-            
+                row = str(row).replace("'", '"') # Convert audit event to valid JSON
+
                 # Save file to log file path
                 append_file(os.path.join(configuration.logging_details['LOG_FILE_PATH'], file_name), str(row))
 
@@ -53,10 +52,10 @@ def Get_TTPURL_events(base_url, access_key, secret_key):
 
                 except Exception as e:
                     log.error('Unexpected error writing to syslog. Exception: ' + str(e))
-                
+
             # Return True to continue loop
             return True
-                
+
         else:
             # Handle errors
             log.error('Unexpected response')
@@ -65,7 +64,7 @@ def Get_TTPURL_events(base_url, access_key, secret_key):
             return False
 
 
-def get_ttp_logs(): 
+def get_ttp_logs():
     try:
         base_url = connection.get_base_url(configuration.authenication_details['EMAIL_ADDRESS'])
         print(base_url)

@@ -3,7 +3,7 @@ import time
 import multiprocessing
 
 # Import dependent functions
-import ttp_events
+#import ttp_events
 #import siem_events
 #import audit_events
 
@@ -19,9 +19,8 @@ for k, v in configuration.source_details.items():
 print("\nStarting main process shortly in 10 seconds\n")
 time.sleep(3)
 
-"""
+
 for i in source_list:
     print("Starting thread for %s" % (i))
     p = multiprocessing.Process(target=lambda: __import__(i))
     p.start()
-"""
