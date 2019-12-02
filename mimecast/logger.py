@@ -39,12 +39,27 @@ def read_file(file_name):
         quit()
 
 
+def append_file(file_name, data_to_write): # Do not append duplicate data to file for the sake of IO read & usage
+    try:
+        found = False
+        ttp_logfile = open(file_name, 'r')
+        ttp_loglist = ttp_logfile.readlines()
+        for line in ttp_loglist:
+            if str(data_to_write) in line:
+                found = True
+
+        if not found:
+            with open(file_name, 'a+', encoding="utf-8") as f:
+                f.write(data_to_write + '\n')
+    except Exception as e:
+        log.error('Error reading file ' + file_name + '. Cannot continue. Exception: ' + str(e))
+        quit()
+
+
 def write_file(file_name, data_to_write):
     try:
         with open(file_name, 'w', encoding="utf-8") as f:
-      #      print(type(data_to_write))
             f.write(data_to_write)
-      #      f.write(str(data_to_write.encode('utf-8')))
     except Exception as e:
         log.error('Error writing file ' + file_name + '. Cannot continue. Exception: ' + str(e))
         quit()

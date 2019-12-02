@@ -40,7 +40,6 @@ def get_mta_siem_logs(checkpoint_dir, base_url, access_key, secret_key):
         elif content_type == 'application/octet-stream':
             file_name = resp_headers['Content-Disposition'].split('=\"')
             file_name = file_name[1][:-1]
-
             # Save file to log file path
             write_file(os.path.join(configuration.logging_details['LOG_FILE_PATH'], file_name), resp_body)
             # Save mc-siem-token page token to check point directory
@@ -83,5 +82,6 @@ def get_siem_logs():
     except Exception as e:
         log.error('Unexpected error getting MTA logs ' + (str(e)))
     quit()
+
 
 get_siem_logs()

@@ -3,19 +3,18 @@ from mimecast.connection import Mimecast
 import os
 import time
 import requests
-from mimecast.logger import log, syslogger, write_file, read_file
+import json
+from mimecast.logger import log, syslogger, write_file, read_file, append_file
 
 # Declare the type of event we want to ingest
 event_type = '/api/audit/get-audit-events'
 connection = Mimecast(event_type)
 
 
-def get_audit_siem_logs(base_url, access_key, secret_key):
+def get_audit_events(base_url, access_key, secret_key):
     post_body = dict()
     post_body['data'] = [{'startDateTime': '2018-12-03T10:15:30+0000','endDateTime': '2019-12-03T10:15:30+0000'}]
-    print(post_body)
     resp = connection.post_request(base_url, event_type, post_body, access_key, secret_key)
-    print(resp)
 
     # Process response
     if resp != 'error':
@@ -23,22 +22,46 @@ def get_audit_siem_logs(base_url, access_key, secret_key):
         resp_headers = resp[1]
         content_type = resp_headers['Content-Type']
 
-        # End if response is JSON as there is no log file to download
-        if content_type == 'application/json':
+        # No more TTP events available
+        if 'application/json' not in content_type:
             log.info('No more Audit logs available - Resting for 60 seconds')
             time.sleep(60)
             return True
-    
+
+        # Process log file
+        elif 'application/json' in content_type:
+            file_name = 'audit_events' # Storing everything into one file
+            rjson = json.loads(resp_body)
+         #   print(json.dumps(rjson, indent=2))
+            resp_body = rjson['data'] # Get Audit urls
+            # Forward each event individually
+            for row in resp_body:
+                resp_body = json.dumps(row, indent=2)
+
+                # Save file to log file path
+                append_file(os.path.join(configuration.logging_details['LOG_FILE_PATH'], file_name), str(row))
+
+                try:
+                    if configuration.syslog_details['syslog_output'] is True:
+                        log.info('Loading file: ' + os.path.join(configuration.logging_details['LOG_FILE_PATH'], file_name) + ' to output to ' + configuration.syslog_details['syslog_server'] + ':' + str(configuration.syslog_details['syslog_port']))
+                        with open(os.path.join(configuration.logging_details['LOG_FILE_PATH'], file_name), 'r') as log_file:
+                            lines = log_file.read().splitlines()
+                            for line in lines:
+                                syslogger.info(line)
+                        log.info('Syslog output completed for file ' + file_name)
+
+                except Exception as e:
+                    log.error('Unexpected error writing to syslog. Exception: ' + str(e))
+                
+            # Return True to continue loop
+            return True
+                
         else:
             # Handle errors
             log.error('Unexpected response')
             for header in resp_headers:
                 log.error(header)
             return False
-
-    else:
-        print("ERROR!")
-
 
 def get_audit_logs(): 
     try:
@@ -51,9 +74,11 @@ def get_audit_logs():
     # Request log data in a loop until there are no more logs to collect
     try:
         log.info('Getting Audit log data')
-        while get_audit_siem_logs(base_url=base_url, access_key=configuration.authenication_details['ACCESS_KEY'], secret_key=configuration.authenication_details['SECRET_KEY']) is True:
+        while get_audit_events(base_url=base_url, access_key=configuration.authenication_details['ACCESS_KEY'], secret_key=configuration.authenication_details['SECRET_KEY']) is True:
             print("Getting additional Audit logs")
+    except Exception as e:
         log.error('Unexpected error getting Audit logs ' + (str(e)))
     quit()
+
 
 get_audit_logs()

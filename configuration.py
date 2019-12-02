@@ -4,13 +4,12 @@ source_details = {
     "audit_events" : False
 }
 
-
 authenication_details = {
-    'APP_ID': "34107bdc-6f7f-4c1e-a313-5e3b224cd4e1",
-    'APP_KEY': "b58a89da-b5e3-4813-bc36-45f74a66e216",
-    'EMAIL_ADDRESS': 'nviewlogs@mediclinic.ae',
-    'ACCESS_KEY': 'mYtOL3XZCOwG96BOiFTZRobmn0BUukXst5ZkLlSng4sBj3gSI7eO7AKdNiCk9xlCulNaFB4EEUVl76rXcsIemIClZcevBsB5iGaidDfpEPoWjVJuvNDLqAqGeB0OfU9Mm__xRFP6Q6FEcQuSNctWsQ',
-    'SECRET_KEY': 'qwU2U8W1tFViZlBdnDAiUinFJVHh/JW69NcugapHeRMccVvcyF+uzIgMMeXw7Q2gToIhs6mPaj9PfyMLxl5Vlg==',
+    'APP_ID': "02e75cb2-fb7b-4338-8b11-2bb68de0f553",
+    'APP_KEY': "f79cfd7b-cb25-416b-bf26-ee359478efc0",
+    'EMAIL_ADDRESS': 'NViewMimecast@coronation.com',
+    'ACCESS_KEY': 'mYtOL3XZCOwG96BOiFTZRt-aQ2Wetn1EyO98I9Vi81ySxHTnuVcb0DaoLnld3u9jpQjG4YYUXokh6XJMFvJvEQNKjTO3Ybf5NrlsmHamipLKy0K4ln3Hk3JG3i3udSY1u5-PmNDU6DqTRteQ2K6RMO-ioZar8NJyUg-LydYt28M',
+    'SECRET_KEY': 'VhWie/KDEP0dZhy9Wlemy1I/+wlt/CpbuvEYgUV74V0yZts2twEBmJV67CABDMO+q2ddj/5aaEbeV8EdXdwFcA==',
 }
 
 syslog_details = {
@@ -23,3 +22,18 @@ logging_details = {
     'LOG_FILE_PATH': 'logs/',
     'CHK_POINT_DIR': 'logs/'
 }
+
+
+"""
+# Set up variables
+EMAIL_ADDRESS = 'NViewMimecast@coronation.com'
+ACCESS_KEY = 'mYtOL3XZCOwG96BOiFTZRt-aQ2Wetn1EyO98I9Vi81ySxHTnuVcb0DaoLnld3u9jpQjG4YYUXokh6XJMFvJvEQNKjTO3Ybf5NrlsmHamipLKy0K4ln3Hk3JG3i3udSY1u5-PmNDU6DqTRteQ2K6RMO-ioZar8NJyUg-LydYt28M'
+SECRET_KEY = 'VhWie/KDEP0dZhy9Wlemy1I/+wlt/CpbuvEYgUV74V0yZts2twEBmJV67CABDMO+q2ddj/5aaEbeV8EdXdwFcA=='
+LOG_FILE_PATH = "/opt/scripts/mimecast/files/"
+CHK_POINT_DIR = '/opt/scripts/mimecast/checkpoint/'
+
+#APP_ID = "1f3287ec-4e7c-11e6-beb8-9e71128cae77"
+#APP_KEY = "b253e754-4dbe-457d-871e-8809d7d53caa"
+APP_ID = "02e75cb2-fb7b-4338-8b11-2bb68de0f553"
+APP_KEY = "f79cfd7b-cb25-416b-bf26-ee359478efc0"
+"""

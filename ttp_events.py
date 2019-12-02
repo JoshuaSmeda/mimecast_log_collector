@@ -3,7 +3,9 @@ from mimecast.connection import Mimecast
 import os
 import time
 import requests
-from mimecast.logger import log, syslogger, write_file, read_file
+import json
+from mimecast.logger import log, syslogger, write_file, read_file, append_file
+
 
 # Declare the type of event we want to ingest
 event_type = '/api/ttp/url/get-logs'
@@ -12,7 +14,6 @@ connection = Mimecast(event_type)
 
 def Get_TTPURL_events(base_url, access_key, secret_key):
     post_body = dict()
-   # post_body['data'] = [{'startDateTime': '2018-12-03T10:15:30+0000','endDateTime': '2019-12-03T10:15:30+0000'}]
     resp = connection.post_request(base_url, event_type, post_body, access_key, secret_key)
 
     # Process response
@@ -21,12 +22,41 @@ def Get_TTPURL_events(base_url, access_key, secret_key):
         resp_headers = resp[1]
         content_type = resp_headers['Content-Type']
 
-        # End if response is JSON as there is no log file to download
-        if content_type == 'application/json':
+        # No more TTP events available
+        if 'application/json' not in content_type:
             log.info('No more TTP URL logs available - Resting for 60 seconds')
             time.sleep(60)
             return True
-    
+
+        # Process log file
+        elif 'application/json' in content_type:
+            file_name = 'ttp_events' # Storing everything into one file
+            rjson = json.loads(resp_body)
+            resp_body = rjson['data'][0]['clickLogs'] # Get TTP urls
+
+            # Forward each event individually
+            for row in resp_body:
+                resp_body = json.dumps(row)
+            #   resp_body = ''.join(map(str, resp_body)) # Convert list to string
+            
+                # Save file to log file path
+                append_file(os.path.join(configuration.logging_details['LOG_FILE_PATH'], file_name), str(row))
+
+                try:
+                    if configuration.syslog_details['syslog_output'] is True:
+                        log.info('Loading file: ' + os.path.join(configuration.logging_details['LOG_FILE_PATH'], file_name) + ' to output to ' + configuration.syslog_details['syslog_server'] + ':' + str(configuration.syslog_details['syslog_port']))
+                        with open(os.path.join(configuration.logging_details['LOG_FILE_PATH'], file_name), 'r') as log_file:
+                            lines = log_file.read().splitlines()
+                            for line in lines:
+                                syslogger.info(line)
+                        log.info('Syslog output completed for file ' + file_name)
+
+                except Exception as e:
+                    log.error('Unexpected error writing to syslog. Exception: ' + str(e))
+                
+            # Return True to continue loop
+            return True
+                
         else:
             # Handle errors
             log.error('Unexpected response')
@@ -34,11 +64,8 @@ def Get_TTPURL_events(base_url, access_key, secret_key):
                 log.error(header)
             return False
 
-    else:
-        print("ERROR!")
 
-
-def get_ttp_logss(): 
+def get_ttp_logs(): 
     try:
         base_url = connection.get_base_url(configuration.authenication_details['EMAIL_ADDRESS'])
         print(base_url)
@@ -54,5 +81,6 @@ def get_ttp_logss():
     except Exception as e:
         log.error('Unexpected error getting TTP logs ' + (str(e)))
     quit()
+
 
 get_ttp_logs()
