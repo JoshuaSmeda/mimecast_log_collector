@@ -12,14 +12,14 @@ get_auth_logs <br>
 
 https://www.mimecast.com/tech-connect/documentation/endpoint-reference/
 
-## Get started:
+## Geting Started:
 1. Edit `configuration.py` to change Mimecast API details and select approriate requirements <br>
 2. Create the following files in `logs/`: <br>
    touch audit_events <br>
    touch ttp_events <br>
 3. Run `run.py` to start ingesting - program is threaded so each source selected in `configuration.py` will run simultaneously.
 
-## Output:
+## Supported Output:
 
 Define the type of output you want within the `configuration.py` file.
 
@@ -28,7 +28,7 @@ Define the type of output you want within the `configuration.py` file.
 
 You can use a SIEM product to ingest these events easily.
 
-## Troubleshoot - contributions welcome!
+## Troubleshooting - contributions welcome!
 
 SSL / connectivity to API issues: https://stackoverflow.com/questions/56858075/pulling-mimecast-logs-with-python
 
