@@ -34,5 +34,5 @@ SSL / connectivity to API issues: https://stackoverflow.com/questions/56858075/p
 
 ## Contact
 
-Joshua Smeda
+Joshua Smeda <br>
 https://www.linkedin.com/in/joshua-smeda-7b9102103/
