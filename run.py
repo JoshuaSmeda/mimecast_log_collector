@@ -2,12 +2,8 @@ import configuration
 import time
 import multiprocessing
 
-# Import dependent functions
-#import ttp_events
-#import siem_events
-#import audit_events
-
 source_list = []
+
 
 for k, v in configuration.source_details.items():
     if v == True:
