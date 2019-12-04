@@ -62,7 +62,6 @@ def Get_TTPURL_events(base_url, access_key, secret_key):
                     log.error('Unexpected error writing to syslog. Exception: ' + str(e))
 
             # Return True to continue loop
-            time.sleep(5)
             return True
 
         else:
