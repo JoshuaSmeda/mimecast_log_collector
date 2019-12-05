@@ -12,7 +12,7 @@ get_auth_logs <br>
 
 https://www.mimecast.com/tech-connect/documentation/endpoint-reference/
 
-## Geting Started:
+## Getting Started:
 1. Edit `configuration.py` to change Mimecast API details and select approriate requirements <br>
 2. Create the following files in *log* directory you've defined in `configuration.py`. By default, it's set to `logs/`: <br>
 ```
