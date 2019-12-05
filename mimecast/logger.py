@@ -52,13 +52,13 @@ def read_file(file_name):
         log.error('Error reading file ' + file_name + '. Cannot continue. Exception: ' + str(e))
         quit()
 
-
-def append_file(file_name, data_to_write): # Do not append duplicate data to file for the sake of IO read & usage
+    
+def append_file(file_name, data_to_write): # Do not append duplicate data to file
     try:
         found = False
-        ttp_logfile = open(file_name, 'r')
-        ttp_loglist = ttp_logfile.readlines()
-        for line in ttp_loglist:
+        logfile = open(file_name, 'r')
+        loglist = logfile.readlines()
+        for line in loglist:
             if str(data_to_write) in line:
                 found = True
 
