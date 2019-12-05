@@ -49,13 +49,13 @@ def Get_TTPURL_events(base_url, access_key, secret_key):
                             lines = log_file.read().splitlines()
                             for line in lines:
                                 hashed_event = (hashlib.md5(line.encode('utf-8')).hexdigest())
-                                with open('hash_file', 'r') as hash_file:
+                                with open(configuration.logging_details['CHK_POINT_DIR'] + 'hash_file', 'r') as hash_file:
                                     if (hashed_event + '\n') in hash_file.readlines():
                                         print("Hash %s already exists" % (hashed_event))
                                     else:
                                         syslogger.info(line)
-                                        append_file('hash_file', hashed_event)
-
+                                        append_file(configuration.logging_details['CHK_POINT_DIR'] + 'hash_file', hashed_event)
+                                        
                         log.info('Syslog output completed for file ' + file_name)
 
                 except Exception as e:
