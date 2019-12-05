@@ -15,8 +15,11 @@ https://www.mimecast.com/tech-connect/documentation/endpoint-reference/
 ## Geting Started:
 1. Edit `configuration.py` to change Mimecast API details and select approriate requirements <br>
 2. Create the following files in `logs/`: <br>
-   touch audit_events <br>
-   touch ttp_events <br>
+```
+   hash_file
+   audit_events
+   ttp_events
+```
 3. Run `run.py` to start ingesting - program is threaded so each source selected in `configuration.py` will run simultaneously.
 
 ## Supported Output:
