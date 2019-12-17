@@ -11,6 +11,7 @@ from mimecast.logger import log, syslogger, write_file, read_file, append_file, 
 # Declare the type of event we want to ingest
 event_type = '/api/audit/get-audit-events'
 connection = Mimecast(event_type)
+interval_time = configuration.logging_details['INTERVAL_TIMER']
 
 def get_audit_events(base_url, access_key, secret_key):
     post_body = dict()
@@ -82,7 +83,8 @@ def get_audit_logs():
     try:
         log.info('Getting Audit log data')
         while get_audit_events(base_url=base_url, access_key=configuration.authenication_details['ACCESS_KEY'], secret_key=configuration.authenication_details['SECRET_KEY']) is True:
-            print("Getting additional Audit logs")
+            print("Getting additional Audit logs after %s seconds" % (interval_time))
+            time.sleep(interval_time)
     except Exception as e:
         log.error('Unexpected error getting Audit logs ' + (str(e)))
     quit()
