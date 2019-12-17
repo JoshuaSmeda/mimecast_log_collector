@@ -11,7 +11,7 @@ from mimecast.logger import log, syslogger, write_file, read_file, append_file
 # Declare the type of event we want to ingest
 event_type = '/api/ttp/url/get-logs'
 connection = Mimecast(event_type)
-
+interval_time = configuration.logging_details['INTERVAL_TIMER']
 
 def Get_TTPURL_events(base_url, access_key, secret_key):
     post_body = dict()
@@ -84,7 +84,8 @@ def get_ttp_logs():
     try:
         log.info('Getting TTP log data')
         while Get_TTPURL_events(base_url=base_url, access_key=configuration.authenication_details['ACCESS_KEY'], secret_key=configuration.authenication_details['SECRET_KEY']) is True:
-            print("Getting additional TTP logs")
+            print("Getting additional TTP logs after %s seconds" % (interval_time))
+            time.sleep(interval_time)
     except Exception as e:
         log.error('Unexpected error getting TTP logs ' + (str(e)))
     quit()
