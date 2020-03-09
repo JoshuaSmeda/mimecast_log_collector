@@ -52,7 +52,7 @@ def read_file(file_name):
         log.error('Error reading file ' + file_name + '. Cannot continue. Exception: ' + str(e))
         quit()
 
-    
+
 def append_file(file_name, data_to_write): # Do not append duplicate data to file
     try:
         found = False

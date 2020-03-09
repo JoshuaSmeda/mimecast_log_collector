@@ -36,6 +36,7 @@ class Mimecast():
         log.debug('Sending request to https://api.mimecast.com/api/discover-authentication with request ID: %s' % (request_id))
         try:
             r = requests.post(url='https://api.mimecast.com/api/login/discover-authentication', data=json.dumps(post_body), headers=headers)
+
             # Handle Rate Limiting
             if r.status_code == 429:
                 rate_limit = (int(r.headers['X-RateLimit-Reset'])/1000) % 60
@@ -71,7 +72,7 @@ class Mimecast():
         headers = {'Authorization': signature, 'x-mc-app-id': configuration.authenication_details['APP_ID'], 'x-mc-req-id': request_id, 'x-mc-date': request_date}
 
         try:
-            # Send request to API 
+            # Send request to API
             log.debug('Sending request to https://' + base_url + self.event_type + ' with request Id: ' + request_id)
             r = requests.post(url='https://' + base_url + uri, data=json.dumps(post_body), headers=headers)
 
@@ -89,6 +90,6 @@ class Mimecast():
         # Handle errors from API
         if r.status_code != 200:
             log.error('Request to ' + uri + ' with , request id: ' + request_id + ' returned with status code: ' + str(r.status_code) + ', response body: ' + r.text)
-        
+
         # Return response body and response headers
         return r.text, r.headers
