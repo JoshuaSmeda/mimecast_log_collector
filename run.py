@@ -19,7 +19,7 @@ for k, v in configuration.source_details.items():
     else:
         print("%s is selected to not be ingested" % (k))
 
-print("\nStarting main process shortly in 10 seconds\n")
+print("\nStarting main process shortly in 3 seconds\n")
 time.sleep(3)
 
 for i in source_list:
