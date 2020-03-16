@@ -20,6 +20,6 @@ syslog_details = {
 
 logging_details = {
     'LOG_FILE_PATH': 'logs/',
-    'CHK_POINT_DIR': 'logs/',
-    'INTERVAL_TIMER' : 25
+    'CHK_POINT_DIR': 'hashes/',
+    'INTERVAL_TIMER': 60
 }

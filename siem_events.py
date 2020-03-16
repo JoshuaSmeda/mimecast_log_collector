@@ -7,8 +7,13 @@ from mimecast.logger import log, syslogger, write_file, read_file
 
 # Declare the type of event we want to ingest
 event_type = '/api/audit/get-siem-logs'
+event_category = 'siem'
 connection = Mimecast(event_type)
+interval_time = configuration.logging_details['INTERVAL_TIMER']
 
+def init_directory(event_category):
+  if not os.path.exists(configuration.logging_details['LOG_FILE_PATH'] + str(event_category)):
+    os.makedirs(configuration.logging_details['LOG_FILE_PATH'] + str(event_category))
 
 def get_mta_siem_logs(checkpoint_dir, base_url, access_key, secret_key):
     # Set checkpoint file name to store page token

@@ -10,8 +10,16 @@ from mimecast.logger import log, syslogger, write_file, read_file, append_file
 
 # Declare the type of event we want to ingest
 event_type = '/api/ttp/url/get-logs'
+event_category = 'ttp/'
 connection = Mimecast(event_type)
 interval_time = configuration.logging_details['INTERVAL_TIMER']
+
+
+def init_directory(event_category):
+  if not os.path.exists(configuration.logging_details['CHK_POINT_DIR'] + str(event_category)):
+    os.makedirs(configuration.logging_details['CHK_POINT_DIR'] + str(event_category))
+  else:
+    print("dir exist")
 
 def Get_TTPURL_events(base_url, access_key, secret_key):
     post_body = dict()
@@ -25,8 +33,8 @@ def Get_TTPURL_events(base_url, access_key, secret_key):
 
         # No more TTP events available
         if 'application/json' not in content_type:
-            log.info('No more TTP URL logs available - Resting for 60 seconds')
-            time.sleep(60)
+            log.info('No more TTP URL logs available - Resting temporarily')
+            time.sleep(interval_time)
             return True
 
         # Process log file
@@ -39,24 +47,17 @@ def Get_TTPURL_events(base_url, access_key, secret_key):
             for row in resp_body:
                 row = str(row).replace("'", '"') # Convert audit event to valid JSON
 
-                # Save file to log file path
-                append_file(os.path.join(configuration.logging_details['LOG_FILE_PATH'], file_name), str(row))
-
                 try:
                     if configuration.syslog_details['syslog_output'] is True:
-                        log.info('Loading file: ' + os.path.join(configuration.logging_details['LOG_FILE_PATH'], file_name) + ' to output to ' + configuration.syslog_details['syslog_server'] + ':' + str(configuration.syslog_details['syslog_port']))
-                        with open(os.path.join(configuration.logging_details['LOG_FILE_PATH'], file_name), 'r') as log_file:
-                            lines = log_file.read().splitlines()
-                            for line in lines:
-                                hashed_event = (hashlib.md5(line.encode('utf-8')).hexdigest())
-                                with open(configuration.logging_details['CHK_POINT_DIR'] + 'hash_file', 'r') as hash_file:
-                                    if (hashed_event + '\n') in hash_file.readlines():
-                                        print("Hash %s already exists" % (hashed_event))
-                                    else:
-                                        syslogger.info(line)
-                                        append_file(configuration.logging_details['CHK_POINT_DIR'] + 'hash_file', hashed_event)
-                                        
-                        log.info('Syslog output completed for file ' + file_name)
+                      hashed_event = (hashlib.md5(row.encode('utf-8')).hexdigest())
+                      if os.path.isfile(configuration.logging_details['CHK_POINT_DIR'] + str(event_category) + str(hashed_event)): # If true
+                          print("Hash already exists in %s" % configuration.logging_details['CHK_POINT_DIR'] + str(event_category) + str(hashed_event))
+                      else:
+                          log.info("Creating hash %s in %s and forwarding to configured syslog" % (hashed_event, configuration.logging_details['CHK_POINT_DIR'] + str(event_category)))
+                          os.mknod(configuration.logging_details['CHK_POINT_DIR'] + str(event_category) + str(hashed_event))
+                          syslogger.info(row)
+
+                      log.info("Syslog output completed for %s" % str(event_category))
 
                 except Exception as e:
                     log.error('Unexpected error writing to syslog. Exception: ' + str(e))
@@ -90,5 +91,5 @@ def get_ttp_logs():
         log.error('Unexpected error getting TTP logs ' + (str(e)))
     quit()
 
-
+init_directory(event_category)
 get_ttp_logs()
