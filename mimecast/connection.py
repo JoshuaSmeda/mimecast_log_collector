@@ -76,12 +76,6 @@ class Mimecast():
             log.debug('Sending request to https://' + base_url + self.event_type + ' with request Id: ' + request_id)
             r = requests.post(url='https://' + base_url + uri, data=json.dumps(post_body), headers=headers)
 
-            # Handle Rate Limiting
-            if r.status_code == 429:
-                log.warn('Rate limit hit. Sleeping for ' + str(r.headers['X-RateLimit-Reset']))
-                rate_limit = (int(r.headers['X-RateLimit-Reset'])/1000) % 60
-                time.sleep(rate_limit * 20)
-
         # Handle errors on client side
         except Exception as e:
             log.error('Unexpected error connecting to API. Exception: ' + str(e))
@@ -92,4 +86,4 @@ class Mimecast():
             log.error('Request to ' + uri + ' with , request id: ' + request_id + ' returned with status code: ' + str(r.status_code) + ', response body: ' + r.text)
 
         # Return response body and response headers
-        return r.text, r.headers
+        return r.text, r.headers, r.status_code
