@@ -33,7 +33,14 @@ def get_mta_siem_logs(checkpoint_dir, base_url, access_key, secret_key):
     if resp != 'error':
         resp_body = resp[0]
         resp_headers = resp[1]
+        resp_status = resp[2]
         content_type = resp_headers['Content-Type']
+
+        
+        if resp_status == 429:
+          log.warn('Rate limit hit. Sleeping for %s % str(resp_headers('X-RateLimitReset']))
+          rate_limit = (int(resp_headers('X-RateLimit-Reset'])/1000 % 60
+          time.sleep(rate_limit * 20)
 
         # End if response is JSON as there is no log file to download
         if content_type == 'application/json':
@@ -43,6 +50,7 @@ def get_mta_siem_logs(checkpoint_dir, base_url, access_key, secret_key):
 
         # Process log file
         elif content_type == 'application/octet-stream':
+          try:
             file_name = resp_headers['Content-Disposition'].split('=\"')
             file_name = file_name[1][:-1]
             # Save file to log file path
@@ -60,9 +68,13 @@ def get_mta_siem_logs(checkpoint_dir, base_url, access_key, secret_key):
             except Exception as e:
                 log.error('Unexpected error writing to syslog. Exception: ' + str(e))
 
+            
             # return true to continue loop
             return True
 
+          except Exception as e:
+            return True # continue loop
+                            
         else:
             # Handle errors
             log.error('Unexpected response')
@@ -83,7 +95,7 @@ def get_siem_logs():
     try:
         log.info('Getting MTA log data')
         while get_mta_siem_logs(checkpoint_dir=configuration.logging_details['CHK_POINT_DIR'], base_url=base_url, access_key=configuration.authenication_details['ACCESS_KEY'], secret_key=configuration.authenication_details['SECRET_KEY']) is True:
-            print("Getting additional SIEM logs")
+            log.info("Getting additional SIEM logs")
     except Exception as e:
         log.error('Unexpected error getting MTA logs ' + (str(e)))
     quit()
