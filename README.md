@@ -1,12 +1,14 @@
 # Mimecast
 
-## Only Python 3 + Supported! ##
+## Only Python 3 ##
 
 Supports the following Mimecast endpoints:
 
+```
 get_siem_logs <br>
 get_ttp_urls <br>
 get_auth_logs <br>
+```
 
 ## Documentation:
 
