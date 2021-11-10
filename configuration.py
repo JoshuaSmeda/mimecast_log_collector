@@ -4,7 +4,7 @@ source_details = {
     "audit_events" : True
 }
 
-authenication_details = {
+authentication_details = {
     'APP_ID': "$",
     'APP_KEY': "$",
     'EMAIL_ADDRESS' : '$',

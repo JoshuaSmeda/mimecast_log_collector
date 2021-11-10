@@ -74,14 +74,14 @@ def get_audit_events(base_url, access_key, secret_key):
 
 def get_audit_logs():
     try:
-        base_url = connection.get_base_url(configuration.authenication_details['EMAIL_ADDRESS'])
+        base_url = connection.get_base_url(configuration.authentication_details['EMAIL_ADDRESS'])
     except Exception:
-        log.error('Error discovering base url for %s. Please double check configuration.py' % (configuration.authenication_details['EMAIL_ADDRESS']))
+        log.error('Error discovering base url for %s. Please double check configuration.py' % (configuration.authentication_details['EMAIL_ADDRESS']))
         quit()
 
     try:
         log.info('Getting Audit log data')
-        while get_audit_events(base_url=base_url, access_key=configuration.authenication_details['ACCESS_KEY'], secret_key=configuration.authenication_details['SECRET_KEY']) is True:
+        while get_audit_events(base_url=base_url, access_key=configuration.authentication_details['ACCESS_KEY'], secret_key=configuration.authentication_details['SECRET_KEY']) is True:
             log.info("Getting additional Audit logs after %s seconds" % (interval_time))
             time.sleep(interval_time)
     except Exception as e:

@@ -38,8 +38,8 @@ def get_mta_siem_logs(checkpoint_dir, base_url, access_key, secret_key):
 
         
         if resp_status == 429:
-          log.warn('Rate limit hit. Sleeping for %s % str(resp_headers('X-RateLimitReset']))
-          rate_limit = (int(resp_headers('X-RateLimit-Reset'])/1000 % 60
+          log.warn('Rate limit hit. Sleeping for %s' % str(resp_headers['X-RateLimitReset']))
+          rate_limit = (int(resp_headers['X-RateLimit-Reset']) / 1000 % 60)
           time.sleep(rate_limit * 20)
 
         # End if response is JSON as there is no log file to download
@@ -85,16 +85,16 @@ def get_mta_siem_logs(checkpoint_dir, base_url, access_key, secret_key):
 
 def get_siem_logs():
     try:
-        base_url = connection.get_base_url(configuration.authenication_details['EMAIL_ADDRESS'])
+        base_url = connection.get_base_url(configuration.authentication_details['EMAIL_ADDRESS'])
         print(base_url)
     except Exception:
-        log.error('Error discovering base url for %s. Please double check configuration.py' % (configuration.authenication_details['EMAIL_ADDRESS']))
+        log.error('Error discovering base url for %s. Please double check configuration.py' % (configuration.authentication_details['EMAIL_ADDRESS']))
         quit()
 
     # Request log data in a loop until there are no more logs to collect
     try:
         log.info('Getting MTA log data')
-        while get_mta_siem_logs(checkpoint_dir=configuration.logging_details['CHK_POINT_DIR'], base_url=base_url, access_key=configuration.authenication_details['ACCESS_KEY'], secret_key=configuration.authenication_details['SECRET_KEY']) is True:
+        while get_mta_siem_logs(checkpoint_dir=configuration.logging_details['CHK_POINT_DIR'], base_url=base_url, access_key=configuration.authentication_details['ACCESS_KEY'], secret_key=configuration.authentication_details['SECRET_KEY']) is True:
             log.info("Getting additional SIEM logs")
     except Exception as e:
         log.error('Unexpected error getting MTA logs ' + (str(e)))
