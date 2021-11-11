@@ -75,16 +75,16 @@ def Get_TTPURL_events(base_url, access_key, secret_key):
 
 def get_ttp_logs():
     try:
-        base_url = connection.get_base_url(configuration.authenication_details['EMAIL_ADDRESS'])
+        base_url = connection.get_base_url(configuration.authentication_details['EMAIL_ADDRESS'])
         print(base_url)
     except Exception:
-        log.error('Error discovering base url for %s. Please double check configuration.py' % (configuration.authenication_details['EMAIL_ADDRESS']))
+        log.error('Error discovering base url for %s. Please double check configuration.py' % (configuration.authentication_details['EMAIL_ADDRESS']))
         quit()
 
     # Request log data in a loop until there are no more logs to collect
     try:
         log.info('Getting TTP log data')
-        while Get_TTPURL_events(base_url=base_url, access_key=configuration.authenication_details['ACCESS_KEY'], secret_key=configuration.authenication_details['SECRET_KEY']) is True:
+        while Get_TTPURL_events(base_url=base_url, access_key=configuration.authentication_details['ACCESS_KEY'], secret_key=configuration.authentication_details['SECRET_KEY']) is True:
             print("Getting additional TTP logs after %s seconds" % (interval_time))
             time.sleep(interval_time)
     except Exception as e:

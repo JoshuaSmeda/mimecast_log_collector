@@ -31,7 +31,7 @@ class Mimecast():
         # Create variables required for request headers
         request_id = str(uuid.uuid4())
         request_date = get_hdr_date()
-        headers = {'x-mc-app-id': configuration.authenication_details['APP_ID'], 'x-mc-req-id': request_id, 'x-mc-date': request_date}
+        headers = {'x-mc-app-id': configuration.authentication_details['APP_ID'], 'x-mc-req-id': request_id, 'x-mc-date': request_date}
         # Send request to API
         log.debug('Sending request to https://api.mimecast.com/api/discover-authentication with request ID: %s' % (request_id))
         try:
@@ -68,8 +68,8 @@ class Mimecast():
         # Create variables required for request headers
         request_id = str(uuid.uuid4())
         request_date = get_hdr_date()
-        signature = 'MC ' + access_key + ':' + self.create_signature(':'.join([request_date, request_id, uri, configuration.authenication_details['APP_KEY']]), secret_key)
-        headers = {'Authorization': signature, 'x-mc-app-id': configuration.authenication_details['APP_ID'], 'x-mc-req-id': request_id, 'x-mc-date': request_date}
+        signature = 'MC ' + access_key + ':' + self.create_signature(':'.join([request_date, request_id, uri, configuration.authentication_details['APP_KEY']]), secret_key)
+        headers = {'Authorization': signature, 'x-mc-app-id': configuration.authentication_details['APP_ID'], 'x-mc-req-id': request_id, 'x-mc-date': request_date}
 
         try:
             # Send request to API
