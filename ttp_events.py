@@ -45,7 +45,7 @@ def Get_TTPURL_events(base_url, access_key, secret_key):
 
             # Forward each event individually
             for row in resp_body:
-                row = str(row).replace("'", '"') # Convert audit event to valid JSON
+                row = json.dumps(json.loads(row))
 
                 try:
                     if configuration.syslog_details['syslog_output'] is True:

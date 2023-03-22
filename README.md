@@ -1,5 +1,36 @@
 # Mimecast
 
+## History ##
+
+This code was originally created by GitHub user JoshuaSmeda.  Unfortunately, as of 3/22/2023 (the 
+inception of this fork), the original repository had not been touched for two years.  There were
+some patches that had been submitted to the original developer, but it seemed that no response
+was forthcoming.
+
+## Motivation ##
+
+**JSON parsing issue [FIXED]** - The TTP and Audit endpoints were returning JSON that was not being parsed correctly.
+I documented this issue [here](https://github.com/JoshuaSmeda/mimecast_log_collector/issues/13)
+
+**SIEM module large filecount per directory [FIXED]** - I didn't submit an issue for this one.  The issue is that
+the script generates a large amount of files in the directory it points to for SIEM logs, so much so that normal
+tools like `rm`, `ls`, etc. can't be used directly to manage them, and there's no built-in file rotation. 
+My solution was to put the SIEM logs in directories based on date so that no one directory would have too many
+files, then I created a log rotation script that would remove old logs.
+
+**Compression** - Examples from Mimecast demonstrate how to implement compression when calling their APIs,
+and they mention that using compression reduces the chance of getting rate limited.  I have a requirement
+to implement this compression, so I will be working on that feature.
+
+**Process mysteriously dies** - I've noticed this happening, but haven't identified a root cause
+
+**No clean way to shut down process** - Unless you want to do `ps -ef | grep mime | awk '{print $2}' | xargs kill -9`
+every time, it can be difficult to know how to shut down the process cleanly.
+
+**No way to prevent multiple copies from running** - Running multiple copies of this script is obviously silly and 
+counterproductive.  If you're running this from `cron`, you can't predict how long a run will be, so it can be
+difficult to choose an interval that wouldn't collide with the next run.  
+
 ## Only Python 3 ##
 
 Supports the following Mimecast endpoints:
@@ -39,5 +70,5 @@ If you are experiencing high CPU usage - increase the interval time in `configur
 
 ## Contact
 
-Joshua Smeda <br>
-https://www.linkedin.com/in/joshua-smeda-7b9102103/
+Primary developer - ArkieCoder
+Contact is via GitHub Issues

@@ -3,17 +3,16 @@ from mimecast.connection import Mimecast
 import os
 import time
 from mimecast.logger import log, syslogger, write_file, read_file
-
+from dateutil.parser import parse
 
 # Declare the type of event we want to ingest
 event_type = '/api/audit/get-siem-logs'
-event_category = 'siem'
 connection = Mimecast(event_type)
 interval_time = configuration.logging_details['INTERVAL_TIMER']
 
-def init_directory(event_category):
-  if not os.path.exists(configuration.logging_details['LOG_FILE_PATH'] + str(event_category)):
-    os.makedirs(configuration.logging_details['LOG_FILE_PATH'] + str(event_category))
+def init_directory():
+  if not os.path.exists(configuration.logging_details['LOG_FILE_PATH']):
+    os.makedirs(configuration.logging_details['LOG_FILE_PATH'])
 
 def get_mta_siem_logs(checkpoint_dir, base_url, access_key, secret_key):
     # Set checkpoint file name to store page token
@@ -53,14 +52,22 @@ def get_mta_siem_logs(checkpoint_dir, base_url, access_key, secret_key):
           try:
             file_name = resp_headers['Content-Disposition'].split('=\"')
             file_name = file_name[1][:-1]
+            file_name_end = file_name.split('_')[-1]
+            file_date_dir = file_name_end.split('.')[0][0:8]
+            full_dir = os.path.join(configuration.logging_details['LOG_FILE_PATH'], file_date_dir)
+            if not os.path.exists(full_dir):
+              os.makedirs(full_dir)
             # Save file to log file path
-            write_file(os.path.join(configuration.logging_details['LOG_FILE_PATH'], file_name), resp_body)
+            write_file(os.path.join(full_dir, file_name), resp_body)
+            file_ts = parse(file_date_dir).timestamp()
+            os.utime(os.path.join(full_dir, file_name), (file_ts, file_ts))
+
             # Save mc-siem-token page token to check point directory
             write_file(checkpoint_filename, resp_headers['mc-siem-token'])
             try:
                 if configuration.syslog_details['syslog_output'] is True:
-                    log.info('Loading file: ' + os.path.join(configuration.logging_details['LOG_FILE_PATH'], file_name) + ' to output to ' + configuration.syslog_details['syslog_server'] + ':' + str(configuration.syslog_details['syslog_port']))
-                    with open(os.path.join(configuration.logging_details['LOG_FILE_PATH'], file_name), 'r') as log_file:
+                    log.info('Loading file: ' + os.path.join(full_dir, file_name) + ' to output to ' + configuration.syslog_details['syslog_server'] + ':' + str(configuration.syslog_details['syslog_port']))
+                    with open(os.path.join(full_dir, file_name), 'r') as log_file:
                         lines = log_file.read().splitlines()
                         for line in lines:
                             syslogger.info(line)
@@ -101,4 +108,5 @@ def get_siem_logs():
     quit()
 
 
+init_directory()
 get_siem_logs()
