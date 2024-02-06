@@ -1,10 +1,10 @@
 import logging
 import logging.handlers
 import datetime
-import configuration
 import os
+from .Config import Config
 
-#print(dir(datetime))
+Config = Config()
 
 # Set up logging (in this case to terminal)
 log = logging.getLogger(__name__)
@@ -14,8 +14,9 @@ log_handler = logging.StreamHandler()
 log_handler.setFormatter(log_formatter)
 log.addHandler(log_handler)
 
+
 # Set up syslog output
-syslog_handler = logging.handlers.SysLogHandler(address=(configuration.syslog_details['syslog_server'], configuration.syslog_details['syslog_port']))
+syslog_handler = logging.handlers.SysLogHandler(address=(Config.get_syslog_details()['syslog_server'], Config.get_syslog_details()['syslog_port']))
 syslog_formatter = logging.Formatter('%(message)s')
 syslog_handler.setFormatter(syslog_formatter)
 syslogger = logging.getLogger(__name__)
@@ -31,16 +32,16 @@ def get_hdr_date():
 
 
 def get_current_date():
-  date = datetime.datetime.now()
-  # 2019-12-03T10:15:30+0000
-  date = date.strftime("%Y-%m-%dT%H:%M:%S+0200")
-  return date
+    date = datetime.datetime.now()
+    # 2019-12-03T10:15:30+0000
+    date = date.strftime("%Y-%m-%dT%H:%M:%S+0200")
+    return date
 
 
 def get_old_date():
-  date = datetime.datetime.now() - datetime.timedelta(days=14)
-  date = date.strftime("%Y-%m-%dT%H:%M:%S+0200")
-  return date
+    date = datetime.datetime.now() - datetime.timedelta(days=14)
+    date = date.strftime("%Y-%m-%dT%H:%M:%S+0200")
+    return date
 
 
 def read_file(file_name):
@@ -53,7 +54,7 @@ def read_file(file_name):
         quit()
 
 
-def append_file(file_name, data_to_write): # Do not append duplicate data to file
+def append_file(file_name, data_to_write):  # Do not append duplicate data to file
     try:
         found = False
         logfile = open(file_name, 'r')

@@ -1,19 +1,22 @@
-import configuration
 import time
 import multiprocessing
 import os
+import mimecast.Config
+
+# Configuration details
+Config = mimecast.Config.Config()
 
 # Create logging directories
-if not os.path.exists(configuration.logging_details['CHK_POINT_DIR']):
-    os.makedirs(configuration.logging_details['CHK_POINT_DIR'])
+if not os.path.exists(Config.get_logging_details()['CHK_POINT_DIR']):
+    os.makedirs(Config.get_logging_details()['CHK_POINT_DIR'])
 
-if not os.path.exists(configuration.logging_details['LOG_FILE_PATH']):
-    os.makedirs(configuration.logging_details['LOG_FILE_PATH'])
+if not os.path.exists(Config.get_logging_details()['LOG_FILE_PATH']):
+    os.makedirs(Config.get_logging_details()['LOG_FILE_PATH'])
 
 source_list = []
 
-for k, v in configuration.source_details.items():
-    if v == True:
+for k, v in Config.get_source_details().items():
+    if v is True:
         print("%s is selected to be ingested" % (k))
         source_list.append(k)
     else:

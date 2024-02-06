@@ -5,7 +5,7 @@ import uuid
 import hashlib
 import hmac
 import time
-import configuration
+import mimecast.Config
 
 from mimecast.logger import log, get_hdr_date
 
@@ -13,6 +13,7 @@ from mimecast.logger import log, get_hdr_date
 class Mimecast():
     def __init__(self, event_type):
         self.event_type = event_type
+        self.Config = mimecast.Config.Config()
 
     def create_signature(self, data_to_sign: str, secret_key: str, encoding='utf-8'):
         secret_key = secret_key.encode(encoding)
@@ -31,11 +32,11 @@ class Mimecast():
         # Create variables required for request headers
         request_id = str(uuid.uuid4())
         request_date = get_hdr_date()
-        headers = {'x-mc-app-id': configuration.authentication_details['APP_ID'], 'x-mc-req-id': request_id, 'x-mc-date': request_date}
+        headers = {'x-mc-app-id': self.Config.get_app_id(), 'x-mc-req-id': request_id, 'x-mc-date': request_date}
         # Send request to API
         log.debug('Sending request to https://api.mimecast.com/api/discover-authentication with request ID: %s' % (request_id))
         try:
-            r = requests.post(url='https://api.mimecast.com/api/login/discover-authentication', data=json.dumps(post_body), headers=headers)
+            r = requests.post(url='https://api.mimecast.com/api/login/discover-authentication', data=json.dumps(post_body), headers=headers, verify=False)
 
             # Handle Rate Limiting
             if r.status_code == 429:
@@ -68,13 +69,13 @@ class Mimecast():
         # Create variables required for request headers
         request_id = str(uuid.uuid4())
         request_date = get_hdr_date()
-        signature = 'MC ' + access_key + ':' + self.create_signature(':'.join([request_date, request_id, uri, configuration.authentication_details['APP_KEY']]), secret_key)
-        headers = {'Authorization': signature, 'x-mc-app-id': configuration.authentication_details['APP_ID'], 'x-mc-req-id': request_id, 'x-mc-date': request_date}
+        signature = 'MC ' + access_key + ':' + self.create_signature(':'.join([request_date, request_id, uri, self.Config.get_app_key()]), secret_key)
+        headers = {'Authorization': signature, 'x-mc-app-id': self.Config.get_app_id(), 'x-mc-req-id': request_id, 'x-mc-date': request_date}
 
         try:
             # Send request to API
             log.debug('Sending request to https://' + base_url + self.event_type + ' with request Id: ' + request_id)
-            r = requests.post(url='https://' + base_url + uri, data=json.dumps(post_body), headers=headers)
+            r = requests.post(url='https://' + base_url + uri, data=json.dumps(post_body), headers=headers, verify=False)
 
         # Handle errors on client side
         except Exception as e:
@@ -86,4 +87,4 @@ class Mimecast():
             log.error('Request to ' + uri + ' with , request id: ' + request_id + ' returned with status code: ' + str(r.status_code) + ', response body: ' + r.text)
 
         # Return response body and response headers
-        return r.text, r.headers, r.status_code
+        return r.content, r.headers, r.status_code

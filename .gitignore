@@ -1,2 +1,6 @@
 __pycache__/*
 mimecast/__pycache__
+.winvenv
+.venv
+hashes/
+logs/
