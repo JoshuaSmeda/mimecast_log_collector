@@ -27,7 +27,7 @@ class Config():
 
         self.s3_options = {
             'COPY_TO_S3': True,
-            'S3_BUCKET': "mimecast-logs-temp-275919932512"
+            'S3_BUCKET': ""
         }
         self.authentication_details = {
             'PARAMETER_STORE':  True,
