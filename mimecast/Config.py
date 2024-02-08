@@ -1,13 +1,18 @@
 import boto3
+import os
 
 
 class Config():
 
     def __init__(self):
+        if not os.environ.get("MIMECAST_NO_VERIFY_SSL"):
+            self.verify_ssl = True
+        else:
+            self.verify_ssl = False
         self.source_details = {
             "siem_events": True,
-            "ttp_events": True,
-            "audit_events": True
+            "ttp_events": False,
+            "audit_events": False
         }
         self.syslog_details = {
             'syslog_output': False,
@@ -16,8 +21,10 @@ class Config():
         }
 
         self.logging_details = {
-            'LOG_FILE_PATH': 'logs/',
+            'LOG_FILE_PATH': 'logs',  # No final '/' for LOG_FILE_PATH
             'CHK_POINT_DIR': 'hashes/',
+            'CHK_POINT_CLOUD': True,
+            'CHK_POINT_CLOUD_LOCATION': '',  # this should be a parameter store name
             'INTERVAL_TIMER': 60
         }
 
@@ -27,15 +34,20 @@ class Config():
 
         self.s3_options = {
             'COPY_TO_S3': True,
-            'S3_BUCKET': ""
+            'S3_BUCKET': ""  # bucket name, not arn
         }
+
+        self.aws_options = {
+            'AWS_REGION': "us-west-2"
+        }
+
         self.authentication_details = {
             'PARAMETER_STORE':  True,
-            'PARAMETER_STORE_APP_ID': '/mimecast_logs/api_id',
-            'PARAMETER_STORE_APP_KEY': '/mimecast_logs/app_key',
-            'PARAMETER_STORE_ACCESS_KEY': '/mimecast_logs/access_key',
-            'PARAMETER_STORE_SECRET_KEY': '/mimecast_logs/secret_key',
-            'PARAMETER_STORE_EMAIL_ADDRESS': '/mimecast_logs/email_address',
+            'PARAMETER_STORE_APP_ID': '',
+            'PARAMETER_STORE_APP_KEY': '',
+            'PARAMETER_STORE_ACCESS_KEY': '',
+            'PARAMETER_STORE_SECRET_KEY': '',
+            'PARAMETER_STORE_EMAIL_ADDRESS': '',
             'APP_ID': "",
             'APP_KEY': "",
             'EMAIL_ADDRESS': '',
@@ -44,7 +56,7 @@ class Config():
         }
 
         if self.authentication_details["PARAMETER_STORE"] is True:
-            ps = boto3.client("ssm")
+            ps = boto3.client("ssm", region_name=self.aws_options["AWS_REGION"])
             try:
                 resp = ps.get_parameter(
                     Name=self.authentication_details["PARAMETER_STORE_APP_ID"],
@@ -108,6 +120,12 @@ class Config():
 
     def get_s3_options(self):
         return self.s3_options
+
+    def get_aws_options(self):
+        return self.aws_options
+
+    def get_verify_ssl(self):
+        return self.verify_ssl
 
 
 # This has to be at the end to avoid circular imports

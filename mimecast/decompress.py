@@ -21,19 +21,21 @@ def unpack_and_write(resp_body: bytes, path: string):
     for filename in zip_file.namelist():
         with zip_file.open(filename, mode="r") as f:
             c = json.loads(f.read())
-            filename_base = filename.split('.')[0]
-            event_day = filename_base.split('_')[-1]
-            year = event_day[0:4]
-            month = event_day[4:6]
-            day = event_day[6:]
-            if not os.path.exists(f"{path}/{year}"):
-                os.mkdir(f"{path}/{year}")
-            if not os.path.exists(f"{path}/{year}/{month}"):
-                os.mkdir(f"{path}/{year}/{month}")
-            if not os.path.exists(f"{path}/{year}/{month}/{day}"):
-                os.mkdir(f"{path}/{year}/{month}/{day}")
-            with open(f"{path}/{year}/{month}/{day}/{filename}", "wb") as o:
-                log.debug(f"Writing {path}/{year}/{month}/{day}/{filename}")
+            partition = None
+            for log_entry in c.get("data"):
+                if log_entry.get("datetime"):
+                    datetime = log_entry.get("datetime")
+                    date = datetime.split("T")[0]
+                    year = date.split("-")[0]
+                    month = date.split("-")[1]
+                    day = date.split("-")[2]
+                    partition = f"{year}/{month}/{day}"
+            if not partition:
+                partition = "UNKNOWN"
+            if not os.path.exists(f"{path}/{partition}"):
+                os.makedirs(f"{path}/{partition}")
+            with open(f"{path}/{partition}/{filename}", "wb") as o:
+                log.debug(f"Writing {path}/{partition}/{filename}")
                 o.write(str(c).encode('utf-8'))
     os.remove(zip_file_name)
-    return f"{year}/{month}/{day}"
+    return f"{partition}"

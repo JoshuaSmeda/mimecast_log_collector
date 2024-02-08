@@ -36,7 +36,10 @@ class Mimecast():
         # Send request to API
         log.debug('Sending request to https://api.mimecast.com/api/discover-authentication with request ID: %s' % (request_id))
         try:
-            r = requests.post(url='https://api.mimecast.com/api/login/discover-authentication', data=json.dumps(post_body), headers=headers, verify=False)
+            if self.Config.get_verify_ssl():
+                r = requests.post(url='https://api.mimecast.com/api/login/discover-authentication', data=json.dumps(post_body), headers=headers, verify=True)
+            else:
+                r = requests.post(url='https://api.mimecast.com/api/login/discover-authentication', data=json.dumps(post_body), headers=headers, verify=False)
 
             # Handle Rate Limiting
             if r.status_code == 429:
@@ -75,7 +78,10 @@ class Mimecast():
         try:
             # Send request to API
             log.debug('Sending request to https://' + base_url + self.event_type + ' with request Id: ' + request_id)
-            r = requests.post(url='https://' + base_url + uri, data=json.dumps(post_body), headers=headers, verify=False)
+            if self.Config.get_verify_ssl():
+                r = requests.post(url='https://' + base_url + uri, data=json.dumps(post_body), headers=headers, verify=True)
+            else:
+                r = requests.post(url='https://' + base_url + uri, data=json.dumps(post_body), headers=headers, verify=False)
 
         # Handle errors on client side
         except Exception as e:

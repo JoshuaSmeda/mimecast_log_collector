@@ -4,6 +4,7 @@ import time
 from mimecast.logger import log, syslogger, write_file, read_file
 from mimecast.decompress import unpack_and_write
 from mimecast.s3 import copy_to_s3
+from mimecast.paramstore import get_checkpoint, put_checkpoint
 import mimecast.Config
 
 # Configuration details
@@ -23,7 +24,10 @@ def init_directory(event_category):
 
 def get_mta_siem_logs(checkpoint_dir, base_url, access_key, secret_key):
     # Set checkpoint file name to store page token
-    checkpoint_filename = os.path.join(checkpoint_dir, 'get_mta_siem_logs_checkpoint')
+    if Config.get_logging_details()["CHK_POINT_CLOUD"]:
+        checkpoint_filename = Config.get_logging_details()["CHK_POINT_CLOUD_LOCATION"]
+    else:
+        checkpoint_filename = os.path.join(checkpoint_dir, 'get_mta_siem_logs_checkpoint')
 
     # Build post body for request
     post_body = dict()
@@ -32,6 +36,9 @@ def get_mta_siem_logs(checkpoint_dir, base_url, access_key, secret_key):
     post_body['data'][0]['fileFormat'] = 'JSON'
     if Config.get_api_options()['COMPRESSED'] is True:
         post_body['data'][0]['compress'] = 'true'
+    if Config.get_logging_details()["CHK_POINT_CLOUD"]:
+        if get_checkpoint(checkpoint_filename) != "INITVALUE":
+            post_body['data'][0]['token'] = get_checkpoint(checkpoint_filename)
     if os.path.exists(checkpoint_filename):
         post_body['data'][0]['token'] = read_file(checkpoint_filename)
 
@@ -91,7 +98,10 @@ def get_mta_siem_logs(checkpoint_dir, base_url, access_key, secret_key):
                         log.error('Unexpected error writing to syslog. Exception: ' + str(e))
 
                 # Save mc-siem-token page token to check point directory
-                write_file(checkpoint_filename, resp_headers['mc-siem-token'])
+                if Config.get_logging_details()["CHK_POINT_CLOUD"]:
+                    put_checkpoint(checkpoint_filename, resp_headers['mc-siem-token'])
+                else:
+                    write_file(checkpoint_filename, resp_headers['mc-siem-token'])
                 # return true to continue loop
                 return True
 
