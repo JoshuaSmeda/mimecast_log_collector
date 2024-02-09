@@ -11,20 +11,15 @@ class Config():
             self.verify_ssl = False
         self.source_details = {
             "siem_events": True,
-            "ttp_events": False,
-            "audit_events": False
-        }
-        self.syslog_details = {
-            'syslog_output': False,
-            'syslog_server': '127.0.0.1',
-            'syslog_port': 5114,
+            "audit_events": True
         }
 
         self.logging_details = {
             'LOG_FILE_PATH': 'logs',  # No final '/' for LOG_FILE_PATH
             'CHK_POINT_DIR': 'hashes/',
             'CHK_POINT_CLOUD': True,
-            'CHK_POINT_CLOUD_LOCATION': '',  # this should be a parameter store name
+            'CHK_POINT_CLOUD_LOCATION': '/mimecast_logs/checkpoint',
+            'CHK_POINT_CLOUD_LOCATION_AUDIT': '/mimecast_logs/audit_checkpoint',  # timestamp for audit event retrieval
             'INTERVAL_TIMER': 60
         }
 
@@ -34,7 +29,7 @@ class Config():
 
         self.s3_options = {
             'COPY_TO_S3': True,
-            'S3_BUCKET': ""  # bucket name, not arn
+            'S3_BUCKET': "mimecast-logs-temp-275919932512"
         }
 
         self.aws_options = {
@@ -43,11 +38,11 @@ class Config():
 
         self.authentication_details = {
             'PARAMETER_STORE':  True,
-            'PARAMETER_STORE_APP_ID': '',
-            'PARAMETER_STORE_APP_KEY': '',
-            'PARAMETER_STORE_ACCESS_KEY': '',
-            'PARAMETER_STORE_SECRET_KEY': '',
-            'PARAMETER_STORE_EMAIL_ADDRESS': '',
+            'PARAMETER_STORE_APP_ID': '/mimecast_logs/api_id',
+            'PARAMETER_STORE_APP_KEY': '/mimecast_logs/app_key',
+            'PARAMETER_STORE_ACCESS_KEY': '/mimecast_logs/access_key',
+            'PARAMETER_STORE_SECRET_KEY': '/mimecast_logs/secret_key',
+            'PARAMETER_STORE_EMAIL_ADDRESS': '/mimecast_logs/email_address',
             'APP_ID': "",
             'APP_KEY': "",
             'EMAIL_ADDRESS': '',
@@ -108,9 +103,6 @@ class Config():
 
     def get_source_details(self):
         return self.source_details
-
-    def get_syslog_details(self):
-        return self.syslog_details
 
     def get_logging_details(self):
         return self.logging_details

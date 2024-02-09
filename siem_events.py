@@ -1,10 +1,10 @@
 from mimecast.connection import Mimecast
 import os
 import time
-from mimecast.logger import log, syslogger, write_file, read_file
+from mimecast.logger import log, write_file, read_file
 from mimecast.decompress import unpack_and_write
 from mimecast.s3 import copy_to_s3
-from mimecast.paramstore import get_checkpoint, put_checkpoint
+from mimecast.paramstore import get_ssm_parameter, put_ssm_paramter
 import mimecast.Config
 
 # Configuration details
@@ -37,8 +37,8 @@ def get_mta_siem_logs(checkpoint_dir, base_url, access_key, secret_key):
     if Config.get_api_options()['COMPRESSED'] is True:
         post_body['data'][0]['compress'] = 'true'
     if Config.get_logging_details()["CHK_POINT_CLOUD"]:
-        if get_checkpoint(checkpoint_filename) != "INITVALUE":
-            post_body['data'][0]['token'] = get_checkpoint(checkpoint_filename)
+        if get_ssm_parameter(checkpoint_filename) != "INITVALUE":
+            post_body['data'][0]['token'] = get_ssm_parameter(checkpoint_filename)
     if os.path.exists(checkpoint_filename):
         post_body['data'][0]['token'] = read_file(checkpoint_filename)
 
@@ -85,21 +85,14 @@ def get_mta_siem_logs(checkpoint_dir, base_url, access_key, secret_key):
             try:
                 for log_file in filename_list:
                     try:
-                        if Config.get_syslog_details()['syslog_output'] is True:
-                            log.info('Loading file: ' + os.path.join(Config.get_logging_details()['LOG_FILE_PATH'], file_name) + ' to output to ' + Config.get_syslog_details()['syslog_server'] + ':' + str(Config.get_syslog_details()['syslog_port']))
-                            with open(os.path.join(Config.get_logging_details()['LOG_FILE_PATH'], file_name), 'r') as log_file:
-                                lines = log_file.read().splitlines()
-                                for line in lines:
-                                    syslogger.info(line)
-                            log.info('Syslog output completed for file ' + file_name)
                         if Config.get_s3_options()['COPY_TO_S3'] is True:
                             copy_to_s3(log_dir, log_file, Config.get_logging_details()['LOG_FILE_PATH'], Config.get_s3_options()['S3_BUCKET'])
                     except Exception as e:
-                        log.error('Unexpected error writing to syslog. Exception: ' + str(e))
+                        log.error('Unexpected error writing to log data. Exception: ' + str(e))
 
                 # Save mc-siem-token page token to check point directory
                 if Config.get_logging_details()["CHK_POINT_CLOUD"]:
-                    put_checkpoint(checkpoint_filename, resp_headers['mc-siem-token'])
+                    put_ssm_paramter(checkpoint_filename, resp_headers['mc-siem-token'])
                 else:
                     write_file(checkpoint_filename, resp_headers['mc-siem-token'])
                 # return true to continue loop

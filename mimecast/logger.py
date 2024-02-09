@@ -15,15 +15,6 @@ log_handler.setFormatter(log_formatter)
 log.addHandler(log_handler)
 
 
-# Set up syslog output
-syslog_handler = logging.handlers.SysLogHandler(address=(Config.get_syslog_details()['syslog_server'], Config.get_syslog_details()['syslog_port']))
-syslog_formatter = logging.Formatter('%(message)s')
-syslog_handler.setFormatter(syslog_formatter)
-syslogger = logging.getLogger(__name__)
-syslogger = logging.getLogger('SysLogger')
-syslogger.addHandler(syslog_handler)
-
-
 # Supporting methods
 def get_hdr_date():
     date = datetime.datetime.utcnow()
@@ -38,8 +29,13 @@ def get_current_date():
     return date
 
 
-def get_old_date():
-    date = datetime.datetime.now() - datetime.timedelta(days=14)
+def get_old_date(old_date=None):
+    if old_date:
+        old_datetime = datetime.datetime.strptime(old_date, "%Y-%m-%dT%H:%M:%S+0200")
+        old_date_delta = datetime.datetime.now() - old_datetime
+        date = datetime.datetime.now() - datetime.timedelta(seconds=old_date_delta.total_seconds())
+    else:
+        date = datetime.datetime.now() - datetime.timedelta(days=14)
     date = date.strftime("%Y-%m-%dT%H:%M:%S+0200")
     return date
 

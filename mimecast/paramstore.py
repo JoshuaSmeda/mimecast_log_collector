@@ -6,7 +6,7 @@ from mimecast.logger import log
 Config = mimecast.Config.Config()
 
 
-def get_checkpoint(param: str) -> str:
+def get_ssm_parameter(param: str) -> str:
     ps = boto3.client("ssm", region_name=Config.get_aws_options()["AWS_REGION"])
     try:
         response = ps.get_parameter(
@@ -29,7 +29,7 @@ def get_checkpoint(param: str) -> str:
         return ""
 
 
-def put_checkpoint(param: str, data: str) -> bool:
+def put_ssm_paramter(param: str, data: str) -> bool:
     ps = boto3.client("ssm", region_name=Config.get_aws_options()["AWS_REGION"])
     try:
         response = ps.put_parameter(

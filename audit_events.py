@@ -1,10 +1,14 @@
 import os
 import time
 import json
-import hashlib
+# import hashlib
 import mimecast.Config
 from mimecast.connection import Mimecast
-from mimecast.logger import log, syslogger, get_current_date, get_old_date
+from mimecast.s3 import copy_to_s3
+from mimecast.paramstore import get_ssm_parameter, put_ssm_paramter
+from mimecast.logger import log, get_current_date, get_old_date
+import random
+import string
 
 
 # Configuration details
@@ -24,7 +28,12 @@ def init_directory(event_category):
 
 def get_audit_events(base_url, access_key, secret_key):
     post_body = dict()
-    post_body['data'] = [{'startDateTime': get_old_date(), 'endDateTime': get_current_date()}]
+    current_date = get_current_date()
+    audit_checkpoint = get_ssm_parameter(Config.get_logging_details()['CHK_POINT_CLOUD_LOCATION_AUDIT'])
+    if Config.get_logging_details()["CHK_POINT_CLOUD"] and audit_checkpoint != "INITVALUE":
+        post_body['data'] = [{'startDateTime': get_old_date(old_date=audit_checkpoint), 'endDateTime': current_date}]
+    else:
+        post_body['data'] = [{'startDateTime': get_old_date(), 'endDateTime': current_date}]
     resp = connection.post_request(base_url, event_type, post_body, access_key, secret_key)
 
     # Process response
@@ -41,7 +50,7 @@ def get_audit_events(base_url, access_key, secret_key):
 
         # Process log file
         elif 'application/json' in content_type:
-            file_name = 'audit_events'  # Storing everything into one file
+            file_name = f"{''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(30))}.json"  # Storing everything into one file
             rjson = json.loads(resp_body)
             resp_body = rjson['data']  # Get Audit urls
 
@@ -50,20 +59,20 @@ def get_audit_events(base_url, access_key, secret_key):
                 row = str(row).replace("'", '"')  # Convert audit event to valid JSON
 
                 try:
-                    if Config.get_syslog_details()['syslog_output'] is True:
-                        hashed_event = (hashlib.md5(row.encode('utf-8')).hexdigest())
-                        if os.path.isfile(Config.get_logging_details()['CHK_POINT_DIR'] + str(event_category) + str(hashed_event)):  # If true
-                            print("Hash already exists in %s" % Config.get_logging_details()['CHK_POINT_DIR'] + str(event_category) + str(hashed_event))
-                        else:
-                            log.info("Creating hash %s in %s and forwarding to configured syslog" % (hashed_event, Config.get_logging_details()['CHK_POINT_DIR'] + str(event_category)))
-                            os.mknod(Config.get_logging_details()['CHK_POINT_DIR'] + str(event_category) + str(hashed_event))
-                            syslogger.info(row)
+                    current_date_pre = current_date.split("T")[0]
+                    log_dir = f'audit_events/{current_date_pre.split("-")[0]}/{current_date_pre.split("-")[1]}/{current_date_pre.split("-")[2]}'
+                    if not os.path.exists(f"{Config.get_logging_details()['LOG_FILE_PATH']}/{file_name}/{log_dir}"):
+                        os.makedirs(f"{Config.get_logging_details()['LOG_FILE_PATH']}/{file_name}/{log_dir}")
+                    with open(f"{Config.get_logging_details()['LOG_FILE_PATH']}/{file_name}/{log_dir}/{file_name}", "w") as o:
+                        o.write(json.dumps(resp_body))
 
-                        log.info("Syslog output completed for %s" % (event_category))
+                    if Config.get_s3_options()['COPY_TO_S3'] is True:
+                        copy_to_s3(log_dir, file_name, f"{Config.get_logging_details()['LOG_FILE_PATH']}/{file_name}", Config.get_s3_options()['S3_BUCKET'])
 
                 except Exception as e:
-                    log.error('Unexpected error writing to syslog. Exception: ' + str(e))
+                    log.error('Unexpected error writing to log data. Exception: ' + str(e))
 
+            put_ssm_paramter(Config.get_logging_details()['CHK_POINT_CLOUD_LOCATION_AUDIT'], current_date)
             # Return True to continue loop
             return True
 
